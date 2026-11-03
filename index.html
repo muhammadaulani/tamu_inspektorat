@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INSPEKTORA - Buku Tamu Online Inspektorat Kota Tangerang</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (XLSX) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --primary-navy: #0f2c59;
+            --secondary-blue: #1b6ca8;
+            --accent-gold: #c89b3c;
+            --bg-light: #f4f7fa;
+            --card-shadow: 0 8px 24px rgba(15, 44, 89, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Navbar & Header */
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--primary-navy) 0%, #153e75 100%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .navbar-brand-text {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #fff !important;
+        }
+        .navbar-brand-sub {
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            display: block;
+            font-weight: 400;
+        }
+        .nav-link {
+            color: #e2e8f0 !important;
+            font-weight: 500;
+            padding: 8px 16px !important;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff !important;
+        }
+        .nav-link.active {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+        }
+
+        /* SPA Section Views */
+        .spa-view {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        .spa-view.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Modern Cards & Containers */
+        .glass-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: var(--card-shadow);
+        }
+
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(15, 44, 89, 0.95), rgba(27, 108, 168, 0.9)), url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80') center/cover;
+            color: white;
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* Camera Box */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            background: #0b1a30;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #94a3b8;
+        }
+        #webcam-video, #webcam-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .camera-overlay-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.65);
+            color: #fff;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Floating Admin Badge Notification */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+        }
+        .notification-count {
+            position: absolute;
+            top: -4px;
+            right: -6px;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        /* Stats Badge */
+        .stat-card {
+            border-radius: 14px;
+            padding: 1.25rem;
+            transition: transform 0.2s;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        /* WhatsApp Support Floating */
+        .btn-wa-float {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 1040;
+            border-radius: 50px;
+            padding: 12px 20px;
+            font-weight: 600;
+            background-color: #25d366;
+            color: white;
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-wa-float:hover {
+            background-color: #1ebc59;
+            color: white;
+            transform: scale(1.04);
+        }
+
+        /* Custom Scrollbar for inner elements */
+        .table-responsive::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-2">
+        <div class="container-fluid px-lg-4">
+            <a class="navbar-brand d-flex align-items-center" href="javascript:void(0)" onclick="navigateTo('home')">
+                <i class="fa-solid fa-shield-halved fa-2x text-warning me-2"></i>
+                <div>
+                    <span class="navbar-brand-text">INSPEKTORA</span>
+                    <span class="navbar-brand-sub">Inspektorat Kota Tangerang</span>
+                </div>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="nav-home" href="javascript:void(0)" onclick="navigateTo('home')">
+                            <i class="fa-solid fa-house me-1"></i> Beranda
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="nav-form" href="javascript:void(0)" onclick="navigateTo('form')">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Buku Tamu
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="nav-bantuan" href="javascript:void(0)" onclick="navigateTo('bantuan')">
+                            <i class="fa-solid fa-headset me-1"></i> Kontak Bantuan
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-2">
+                    <div id="admin-logged-ui" class="d-none d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-outline-light notification-bell position-relative" onclick="navigateTo('admin')">
+                            <i class="fa-solid fa-bell"></i>
+                            <span class="badge bg-danger notification-count" id="notif-badge">0</span>
+                        </button>
+                        <button class="btn btn-warning btn-sm fw-bold px-3" onclick="navigateTo('admin')">
+                            <i class="fa-solid fa-sliders me-1"></i> Panel Admin
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" onclick="logoutAdmin()" title="Logout">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </button>
+                    </div>
+                    <div id="guest-login-ui">
+                        <button class="btn btn-outline-light btn-sm fw-semibold px-3" onclick="openLoginModal()">
+                            <i class="fa-solid fa-lock me-1"></i> Login Petugas
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN SPA WRAPPER -->
+    <main class="container my-4 flex-grow-1">
+
+        <!-- 1. SECTION BERANDA -->
+        <section id="view-home" class="spa-view active">
+            <div class="hero-banner mb-4 text-center text-md-start">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <span class="badge bg-warning text-dark px-3 py-1 mb-2 fw-bold text-uppercase">
+                            Sistem Pelayanan Tamu Terpadu
+                        </span>
+                        <h1 class="fw-bold mb-2 display-6">Selamat Datang di Inspektorat Kota Tangerang</h1>
+                        <p class="text-light mb-4 lead" style="font-size: 1.05rem;">
+                            Untuk ketertiban, akuntabilitas, dan kenyamanan bersama, seluruh tamu dinas, rekanan, maupun masyarakat diwajibkan melakukan registrasi digital dan verifikasi foto sebelum memasuki area kerja.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-start">
+                            <button class="btn btn-warning btn-lg fw-bold px-4" onclick="navigateTo('form')">
+                                <i class="fa-solid fa-user-check me-2"></i> Isi Buku Tamu Sekarang
+                            </button>
+                            <button class="btn btn-outline-light btn-lg px-3" onclick="navigateTo('bantuan')">
+                                <i class="fa-brands fa-whatsapp me-2"></i> Bantuan Resmi
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center d-none d-md-block">
+                        <i class="fa-solid fa-building-shield fa-8x text-warning opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ringkasan Info Pelayanan -->
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
+                                <i class="fa-solid fa-id-card-clip fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1 small fw-bold">PROSEDUR RESMI</h6>
+                                <h5 class="fw-bold mb-0">Verifikasi Wajah</h5>
+                                <small class="text-muted">Foto langsung saat pendaftaran</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle me-3">
+                                <i class="fa-solid fa-bell-concierge fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1 small fw-bold">NOTIFIKASI REAL-TIME</h6>
+                                <h5 class="fw-bold mb-0">Langsung ke Admin</h5>
+                                <small class="text-muted">Notifikasi instan pejabat terkait</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle me-3">
+                                <i class="fa-solid fa-file-excel fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1 small fw-bold">REKAPITULASI</h6>
+                                <h5 class="fw-bold mb-0">Laporan Excel Otomatis</h5>
+                                <small class="text-muted">Monitoring mingguan terpadu</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jam Operasional & Alamat -->
+            <div class="card glass-card mt-4 border-0">
+                <div class="card-body p-4">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="fw-bold text-navy mb-2"><i class="fa-solid fa-location-dot text-danger me-2"></i>Lokasi Kantor & Layanan</h5>
+                            <p class="text-muted mb-1"> Ktr. Inspektorat, Jl. KS Tubun No. 40, Pintu Air No.10, Kel, RT.002/RW.004, Koang Jaya, Kec. Karawaci, Kota Tangerang, Banten 15112.</p>
+                            <span class="badge bg-light text-dark border me-2"><i class="fa-regular fa-clock me-1 text-primary"></i> Senin - Jumat: 08:00 - 16:00 WIB</span>
+                            <span class="badge bg-light text-dark border"><i class="fa-solid fa-phone me-1 text-success"></i> WhatsApp Pengaduan: 0889-7682-0509</span>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <button class="btn btn-outline-primary fw-semibold" onclick="openLoginModal()">
+                                Masuk Area Verifikator <i class="fa-solid fa-arrow-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. SECTION FORM BUKU TAMU -->
+        <section id="view-form" class="spa-view">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="glass-card p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <span class="badge bg-primary px-3 py-2 text-uppercase mb-2">Formulir Kunjungan</span>
+                            <h2 class="fw-bold text-navy">Registrasi Tamu Inspektorat</h2>
+                            <p class="text-muted">Silakan lengkapi formulir di bawah ini dengan data yang valid dan lakukan verifikasi foto wajah.</p>
+                        </div>
+
+                        <form id="formBukuTamu" onsubmit="handleFormSubmit(event)">
+                            <div class="row g-4">
+                                <!-- Data Diri -->
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                                        <i class="fa-solid fa-user me-2"></i>1. Data Pribadi Tamu
+                                    </h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
+                                        <input type="text" id="tamu-nama" class="form-control" placeholder="Contoh: Budi Santoso, S.T." required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Instansi / Asal <span class="text-danger">*</span></label>
+                                        <input type="text" id="tamu-instansi" class="form-control" placeholder="Contoh: Dinas PUPR / Rekanan PT ABC / Warga Pribadi" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Nomor WhatsApp Aktif <span class="text-danger">*</span></label>
+                                        <input type="tel" id="tamu-wa" class="form-control" placeholder="Contoh: 081234567890" pattern="[0-9]{9,15}" required>
+                                        <div class="form-text">Untuk menerima notifikasi status kunjungan.</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Alamat Email <span class="text-danger">*</span></label>
+                                        <input type="email" id="tamu-email" class="form-control" placeholder="nama@email.com" required>
+                                    </div>
+                                </div>
+
+                                <!-- Data Kunjungan & Verifikasi Foto -->
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                                        <i class="fa-solid fa-camera me-2"></i>2. Maksud Kunjungan & Foto
+                                    </h6>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Pihak / Bagian yang Ingin Ditemui <span class="text-danger">*</span></label>
+                                        <select id="tamu-pejabat" class="form-select" required>
+                                            <option value="" selected disabled>-- Pilih Pejabat / Bidang --</option>
+                                            <option value="Inspektur Kota Tangerang">Inspektur Kota Tangerang</option>
+                                            <option value="Sekretaris Inspektorat">Sekretaris Inspektorat</option>
+                                            <option value="Inspektur Pembantu Wilayah I">Inspektur Pembantu Wilayah I</option>
+                                            <option value="Inspektur Pembantu Wilayah II">Inspektur Pembantu Wilayah II</option>
+                                            <option value="Inspektur Pembantu Wilayah III">Inspektur Pembantu Wilayah III</option>
+                                            <option value="Inspektur Pembantu Bidang Khusus/Investigasi">Inspektur Pembantu Investigasi / Pencegahan</option>
+                                            <option value="Bagian Administrasi & Umum">Bagian Administrasi & Umum</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Tujuan Kunjungan <span class="text-danger">*</span></label>
+                                        <textarea id="tamu-tujuan" rows="2" class="form-control" placeholder="Jelaskan secara singkat keperluan Anda..." required></textarea>
+                                    </div>
+
+                                    <!-- Verifikasi Foto -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                                            <span>Verifikasi Foto Wajah <span class="text-danger">*</span></span>
+                                            <small class="text-muted">Kamera / Upload</small>
+                                        </label>
+
+                                        <div class="camera-container mb-2" id="camera-box">
+                                            <video id="webcam-video" autoplay playsinline class="d-none"></video>
+                                            <img id="webcam-preview" class="d-none" alt="Preview Foto Tamu">
+                                            <div id="camera-placeholder" class="text-center text-light p-3">
+                                                <i class="fa-solid fa-camera fa-2x mb-2 text-warning"></i>
+                                                <p class="mb-0 small">Klik tombol <b>Buka Kamera</b> atau <b>Unggah Berkas</b> di bawah</p>
+                                            </div>
+                                            <span class="camera-overlay-badge" id="camera-status">Kamera Belum Aktif</span>
+                                        </div>
+
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-primary flex-fill" onclick="startWebcam()">
+                                                <i class="fa-solid fa-video me-1"></i> Buka Kamera
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-warning flex-fill d-none" id="btn-snap" onclick="takeSnapshot()">
+                                                <i class="fa-solid fa-shutter-release me-1"></i> Ambil Foto
+                                            </button>
+                                            <label class="btn btn-sm btn-outline-secondary flex-fill mb-0">
+                                                <i class="fa-solid fa-upload me-1"></i> Pilih File
+                                                <input type="file" id="tamu-file-photo" accept="image/*" class="d-none" onchange="handleFileUpload(event)">
+                                            </label>
+                                        </div>
+                                        <input type="hidden" id="foto-base64" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="pernyataanCheck" required>
+                                    <label class="form-check-label small" for="pernyataanCheck">
+                                        Saya menyatakan data di atas diisi secara sadar, benar, dan dapat dipertanggungjawabkan.
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary px-5 py-2 fw-bold" id="btn-submit-tamu">
+                                    <i class="fa-solid fa-paper-plane me-2"></i> Kirim Formulir Kunjungan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. SECTION KONTAK BANTUAN -->
+        <section id="view-bantuan" class="spa-view">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="glass-card p-4 p-md-5 text-center">
+                        <div class="mb-3">
+                            <span class="bg-success bg-opacity-10 text-success p-3 rounded-circle d-inline-block">
+                                <i class="fa-brands fa-whatsapp fa-3x"></i>
+                            </span>
+                        </div>
+                        <h2 class="fw-bold mb-2">Pusat Bantuan & Layanan Informasi</h2>
+                        <p class="text-muted mb-4">
+                            Apabila mengalami kendala pengisian formulir, keterlambatan konfirmasi verifikasi, atau kebutuhan mendesak lainnya, Anda dapat terhubung langsung ke Customer Service resmi Inspektorat Kota Tangerang.
+                        </p>
+
+                        <div class="card bg-light border-0 p-4 mb-4 text-start">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div>
+                                    <small class="text-muted text-uppercase fw-bold">Nomor WhatsApp Resmi</small>
+                                    <h4 class="fw-bold text-success mb-0">0889-7682-0509</h4>
+                                    <small class="text-secondary"><i class="fa-solid fa-circle-check text-success me-1"></i>Terverifikasi Layanan Pelayanan Publik</small>
+                                </div>
+                                <a href="https://wa.me/6288976820509?text=Halo%20Admin%20Inspektorat%20Kota%20Tangerang,%20saya%20memerlukan%20informasi%20bantuan%20terkait%20buku%20tamu." target="_blank" class="btn btn-success fw-bold px-4 py-2">
+                                    <i class="fa-brands fa-whatsapp me-2"></i> Hubungi WhatsApp
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 text-start">
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold text-navy"><i class="fa-solid fa-clock me-2 text-warning"></i>Waktu Tanggap</h6>
+                                    <p class="small text-muted mb-0">Layanan obrolan responsif aktif pada hari kerja pukul 08.00 - 16.00 WIB.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold text-navy"><i class="fa-solid fa-shield-cat me-2 text-primary"></i>Pusat Aduan & Whistleblowing</h6>
+                                    <p class="small text-muted mb-0">Pelaporan indikasi kecurangan dapat disampaikan langsung melalui kanal pengawasan internal.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="navigateTo('home')">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Beranda
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. SECTION ADMIN DASHBOARD (Terproteksi Login) -->
+        <section id="view-admin" class="spa-view">
+            <!-- Admin Header -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                <div>
+                    <h3 class="fw-bold text-navy mb-0">Halaman Kontrol & Rekapitulasi</h3>
+                    <p class="text-muted small mb-0">Pengelolaan, Verifikasi Tamu Masuk & Pembuatan Laporan Mingguan</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm fw-bold shadow-sm" onclick="exportToExcel()">
+                        <i class="fa-solid fa-file-excel me-1"></i> Unduh Rekapitulasi Excel
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="logoutAdmin()">
+                        <i class="fa-solid fa-power-off me-1"></i> Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ringkasan Statistik Mingguan / KPI -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card border-start border-4 border-primary">
+                        <small class="text-muted fw-bold">TOTAL TAMU</small>
+                        <h3 class="fw-bold my-1" id="kpi-total">0</h3>
+                        <small class="text-primary"><i class="fa-solid fa-users me-1"></i>Semua Kunjungan</small>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card border-start border-4 border-warning">
+                        <small class="text-muted fw-bold">MENUNGGU VERIFIKASI</small>
+                        <h3 class="fw-bold my-1 text-warning" id="kpi-pending">0</h3>
+                        <small class="text-muted"><i class="fa-regular fa-clock me-1"></i>Perlu Dicek</small>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card border-start border-4 border-success">
+                        <small class="text-muted fw-bold">TERVERIFIKASI</small>
+                        <h3 class="fw-bold my-1 text-success" id="kpi-verified">0</h3>
+                        <small class="text-success"><i class="fa-solid fa-circle-check me-1"></i>Diterima</small>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card border-start border-4 border-info">
+                        <small class="text-muted fw-bold">KUNJUNGAN HARI INI</small>
+                        <h3 class="fw-bold my-1 text-info" id="kpi-today">0</h3>
+                        <small class="text-muted"><i class="fa-solid fa-calendar-day me-1"></i>Update Terkini</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analisis Kunjungan Mingguan (Chart & Detail Ringkas) -->
+            <div class="row g-3 mb-4">
+                <div class="col-lg-8">
+                    <div class="glass-card p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-navy mb-0"><i class="fa-solid fa-chart-column me-2 text-primary"></i>Statistik Kunjungan Mingguan Berdasarkan Tujuan</h6>
+                            <span class="badge bg-light text-dark border">Otomatis Terkalkulasi</span>
+                        </div>
+                        <div style="height: 220px;">
+                            <canvas id="weeklyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="glass-card p-3 h-100 d-flex flex-direction-column justify-content-between">
+                        <div>
+                            <h6 class="fw-bold text-navy mb-3"><i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Aksi Cepat Admin</h6>
+                            <p class="small text-muted">Setiap tamu yang mengisi formulir memicu pemberitahuan instan. Klik tombol verifikasi untuk mengizinkan akses ke dalam gedung.</p>
+                            <div class="alert alert-info py-2 px-3 small mb-0">
+                                <i class="fa-solid fa-info-circle me-1"></i> Data disimpan secara persistensif di peramban dan siap dicetak ke Excel kapan saja.
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary btn-sm w-100" onclick="resetToSampleData()">
+                                <i class="fa-solid fa-rotate-left me-1"></i> Muat Sampel Data Demo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabel Data Tamu -->
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h5 class="fw-bold text-navy mb-0"><i class="fa-solid fa-list-check me-2"></i>Riwayat & Log Kunjungan</h5>
+                    <div class="d-flex gap-2">
+                        <input type="text" id="admin-search-input" class="form-control form-control-sm" placeholder="Cari nama / instansi..." oninput="renderTable()">
+                        <select id="admin-filter-status" class="form-select form-select-sm" style="width: 150px;" onchange="renderTable()">
+                            <option value="ALL">Semua Status</option>
+                            <option value="PENDING">Menunggu</option>
+                            <option value="VERIFIED">Terverifikasi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr class="small text-uppercase">
+                                <th>Waktu</th>
+                                <th>Foto</th>
+                                <th>Tamu & Instansi</th>
+                                <th>Kontak</th>
+                                <th>Tujuan & Yang Ditemui</th>
+                                <th>Status</th>
+                                <th class="text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guest-table-body">
+                            <!-- Injected by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-top py-3 text-center text-muted small mt-auto">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center">
+            <span>&copy; <span id="current-year"></span> Inspektorat Kota Tangerang. Pelayanan Pengawasan Handal & Berintegritas.</span>
+            <span>Bantuan CS: <a href="https://wa.me/6288976820509" target="_blank" class="text-success fw-bold text-decoration-none"><i class="fa-brands fa-whatsapp"></i> 0889-7682-0509</a></span>
+        </div>
+    </footer>
+
+    <!-- FLOATING WHATSAPP BUTTON -->
+    <a href="https://wa.me/6288976820509?text=Halo%20Admin%20Inspektorat%20Kota%20Tangerang,%20saya%20butuh%20informasi%20buku%20tamu" target="_blank" class="btn-wa-float">
+        <i class="fa-brands fa-whatsapp fa-xl"></i>
+        <span>Bantuan WA</span>
+    </a>
+
+    <!-- MODAL: LOGIN ADMIN -->
+    <div class="modal fade" id="modalLoginAdmin" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-navy text-white" style="background-color: var(--primary-navy);">
+                    <h6 class="modal-title fw-bold text-white"><i class="fa-solid fa-lock me-2"></i>Login Kontrol Admin</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="login-error-alert" class="alert alert-danger py-2 px-3 small d-none">
+                        Username atau password salah!
+                    </div>
+                    <form onsubmit="handleLoginAdmin(event)">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+                                <input type="text" id="login-username" class="form-control" placeholder="admin" required>
+                            </div>
+                            <small class="text-muted" style="font-size:0.75rem;">Default: <code>admin</code></small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-key"></i></span>
+                                <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                            </div>
+                            <small class="text-muted" style="font-size:0.75rem;">Default: <code>admin1123</code></small>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold mt-2">
+                            Masuk ke Sistem
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PREVIEW FOTO TAMU -->
+    <div class="modal fade" id="modalFotoPreview" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold" id="preview-nama-tamu">Foto Tamu</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-3">
+                    <img id="modal-img-src" src="" alt="Foto Tamu" class="img-fluid rounded border shadow-sm" style="max-height: 400px;">
+                    <div class="mt-2 text-muted small" id="preview-instansi-tamu"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOTIFIKASI TAMU SUKSES -->
+    <div class="modal fade" id="modalSuksesTamu" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-body text-center p-4">
+                    <div class="text-success mb-3">
+                        <i class="fa-solid fa-circle-check fa-4x animate__animated animate__bounceIn"></i>
+                    </div>
+                    <h4 class="fw-bold text-navy">Pendaftaran Berhasil!</h4>
+                    <p class="text-muted small mb-3">
+                        Data dan foto Anda telah tercatat ke dalam sistem Inspektorat Kota Tangerang. Sistem secara otomatis telah mengirimkan notifikasi kepada Petugas Admin.
+                    </p>
+                    <div class="bg-light rounded p-3 text-start small mb-3">
+                        <div><b>Nama:</b> <span id="res-nama">-</span></div>
+                        <div><b>Tujuan:</b> <span id="res-tujuan">-</span></div>
+                        <div><b>Menemui:</b> <span id="res-pejabat">-</span></div>
+                        <div><b>Status:</b> <span class="badge bg-warning text-dark">Menunggu Konfirmasi Pejabat</span></div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary fw-bold" data-bs-dismiss="modal" onclick="navigateTo('home')">
+                            Kembali ke Beranda
+                        </button>
+                        <a href="https://wa.me/6288976820509?text=Halo%20Admin%20Inspektorat,%20saya%20sudah%20mengisi%20buku%20tamu%20atas%20nama%20" id="btn-wa-confirm" target="_blank" class="btn btn-outline-success btn-sm">
+                            <i class="fa-brands fa-whatsapp me-1"></i> Konfirmasi ke WA Petugas (088976820509)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFIKASI ADMIN (SIMULASI MASUK) -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
+        <div id="adminLiveToast" class="toast align-items-center text-bg-warning border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-bold">
+                    <i class="fa-solid fa-bell me-2"></i> <span id="toast-message">Tamu Baru Terdaftar!</span>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SCRIPT UTAMA -->
+    <script>
+        // Set tahun otomatis
+        document.getElementById('current-year').innerText = new Date().getFullYear();
+
+        // 1. DATA MASTER & LOCALSTORAGE INITIALIZATION
+        const STORAGE_KEY = 'inspektora_tamu_db';
+        const AUTH_KEY = 'inspektora_is_admin';
+
+        const sampleGuests = [
+            {
+                id: 'TM-1001',
+                nama: 'Hendra Gunawan, S.Kom',
+                instansi: 'Bappeda Kota Tangerang',
+                wa: '081234889901',
+                email: 'hendra.gunawan@tangerangkota.go.id',
+                pejabat: 'Inspektur Pembantu Wilayah I',
+                tujuan: 'Koordinasi Tindak Lanjut Hasil Pemeriksaan Triwulan I',
+                foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+                status: 'VERIFIED',
+                timestamp: new Date(Date.now() - 3600000 * 24).toLocaleString('id-ID')
+            },
+            {
+                id: 'TM-1002',
+                nama: 'Ratna Kusuma Dewi',
+                instansi: 'Dinas Kominfo Kota Tangerang',
+                wa: '085712345678',
+                email: 'ratna.k@tangerangkota.go.id',
+                pejabat: 'Sekretaris Inspektorat',
+                tujuan: 'Integrasi Dashboard SPBE dan Pengawasan Internal',
+                foto: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80',
+                status: 'VERIFIED',
+                timestamp: new Date(Date.now() - 3600000 * 5).toLocaleString('id-ID')
+            },
+            {
+                id: 'TM-1003',
+                nama: 'Ahmad Fauzi',
+                instansi: 'PT Wira Mega Konsultan',
+                wa: '081389012345',
+                email: 'ahmadfauzi@wiramega.co.id',
+                pejabat: 'Inspektur Pembantu Wilayah II',
+                tujuan: 'Klarifikasi Audit Proyek Fisik Drainase Karawaci',
+                foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+                status: 'PENDING',
+                timestamp: new Date().toLocaleString('id-ID')
+            }
+        ];
+
+        function getGuests() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (!data) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(sampleGuests));
+                return sampleGuests;
+            }
+            return JSON.parse(data);
+        }
+
+        function saveGuests(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        // 2. SPA NAVIGATION ROUTER
+        function navigateTo(tabId) {
+            // Jika memilih admin tapi belum login, buka modal login
+            if (tabId === 'admin' && !isAdminLoggedIn()) {
+                openLoginModal();
+                return;
+            }
+
+            // Sembunyikan semua section
+            const sections = document.querySelectorAll('.spa-view');
+            sections.forEach(sec => sec.classList.remove('active'));
+
+            // Nonaktifkan semua navbar link
+            document.querySelectorAll('.navbar-nav .nav-link').forEach(link => link.classList.remove('active'));
+
+            // Tampilkan section tujuan
+            const targetSection = document.getElementById(`view-${tabId}`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            // Update nav-active
+            const targetNav = document.getElementById(`nav-${tabId}`);
+            if (targetNav) targetNav.classList.add('active');
+
+            // Tindakan spesifik halaman
+            if (tabId === 'admin') {
+                renderTable();
+                updateAdminStats();
+                initWeeklyChart();
+            }
+
+            // Hentikan kamera jika user berpindah dari tab form
+            if (tabId !== 'form') {
+                stopWebcam();
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 3. AUTHENTICATION (username: admin, pass: admin1123)
+        function isAdminLoggedIn() {
+            return sessionStorage.getItem(AUTH_KEY) === 'true';
+        }
+
+        function checkAuthUI() {
+            const isAuth = isAdminLoggedIn();
+            const adminUI = document.getElementById('admin-logged-ui');
+            const guestUI = document.getElementById('guest-login-ui');
+            if (isAuth) {
+                adminUI.classList.remove('d-none');
+                guestUI.classList.add('d-none');
+            } else {
+                adminUI.classList.add('d-none');
+                guestUI.classList.remove('d-none');
+            }
+            updateNotifBadge();
+        }
+
+        function openLoginModal() {
+            document.getElementById('login-error-alert').classList.add('d-none');
+            const modal = new bootstrap.Modal(document.getElementById('modalLoginAdmin'));
+            modal.show();
+        }
+
+        function handleLoginAdmin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value.trim();
+
+            if (u === 'admin' && p === 'admin1123') {
+                sessionStorage.setItem(AUTH_KEY, 'true');
+                bootstrap.Modal.getInstance(document.getElementById('modalLoginAdmin')).hide();
+                checkAuthUI();
+                navigateTo('admin');
+                showToast("Selamat Datang, Admin Inspektorat Kota Tangerang!");
+            } else {
+                document.getElementById('login-error-alert').classList.remove('d-none');
+            }
+        }
+
+        function logoutAdmin() {
+            sessionStorage.removeItem(AUTH_KEY);
+            checkAuthUI();
+            navigateTo('home');
+            showToast("Anda telah keluar dari sesi Admin.");
+        }
+
+        // 4. WEBCAM & CAPTURE LOGIC
+        let videoStream = null;
+
+        async function startWebcam() {
+            const video = document.getElementById('webcam-video');
+            const preview = document.getElementById('webcam-preview');
+            const placeholder = document.getElementById('camera-placeholder');
+            const btnSnap = document.getElementById('btn-snap');
+            const statusLabel = document.getElementById('camera-status');
+
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                video.srcObject = videoStream;
+                video.classList.remove('d-none');
+                preview.classList.add('d-none');
+                placeholder.classList.add('d-none');
+                btnSnap.classList.remove('d-none');
+                statusLabel.innerText = 'Kamera Aktif';
+                statusLabel.classList.replace('bg-dark', 'bg-success');
+            } catch (err) {
+                alert('Tidak dapat mengakses webcam secara otomatis. Silakan gunakan tombol "Pilih File" untuk mengunggah foto Anda.');
+                console.warn(err);
+            }
+        }
+
+        function stopWebcam() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+            const video = document.getElementById('webcam-video');
+            if (video) video.classList.add('d-none');
+        }
+
+        function takeSnapshot() {
+            const video = document.getElementById('webcam-video');
+            const preview = document.getElementById('webcam-preview');
+            const hiddenInput = document.getElementById('foto-base64');
+            const statusLabel = document.getElementById('camera-status');
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 480;
+            canvas.height = video.videoHeight || 360;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            hiddenInput.value = dataUrl;
+
+            preview.src = dataUrl;
+            preview.classList.remove('d-none');
+            video.classList.add('d-none');
+            statusLabel.innerText = 'Foto Terambil ✓';
+            stopWebcam();
+            document.getElementById('btn-snap').classList.add('d-none');
+        }
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const dataUrl = evt.target.result;
+                document.getElementById('foto-base64').value = dataUrl;
+                const preview = document.getElementById('webcam-preview');
+                preview.src = dataUrl;
+                preview.classList.remove('d-none');
+                document.getElementById('camera-placeholder').classList.add('d-none');
+                document.getElementById('webcam-video').classList.add('d-none');
+                document.getElementById('camera-status').innerText = 'Foto Terpilih ✓';
+                stopWebcam();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 5. SUBMIT FORM BUKU TAMU
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const foto = document.getElementById('foto-base64').value;
+            if (!foto) {
+                alert('Wajib melakukan verifikasi foto wajah terlebih dahulu!');
+                return;
+            }
+
+            const nama = document.getElementById('tamu-nama').value.trim();
+            const instansi = document.getElementById('tamu-instansi').value.trim();
+            const wa = document.getElementById('tamu-wa').value.trim();
+            const email = document.getElementById('tamu-email').value.trim();
+            const pejabat = document.getElementById('tamu-pejabat').value;
+            const tujuan = document.getElementById('tamu-tujuan').value.trim();
+
+            const newGuest = {
+                id: 'TM-' + Math.floor(1000 + Math.random() * 9000),
+                nama,
+                instansi,
+                wa,
+                email,
+                pejabat,
+                tujuan,
+                foto,
+                status: 'PENDING',
+                timestamp: new Date().toLocaleString('id-ID')
+            };
+
+            const guests = getGuests();
+            guests.unshift(newGuest);
+            saveGuests(guests);
+
+            // Trigger notifikasi admin via Toast & Audio Sintesis
+            playBeepSound();
+            showToast(`Kunjungan Baru dari ${nama} (${instansi}) otomatis masuk ke Admin!`);
+            updateNotifBadge();
+
+            // Set info modal sukses
+            document.getElementById('res-nama').innerText = nama;
+            document.getElementById('res-tujuan').innerText = tujuan;
+            document.getElementById('res-pejabat').innerText = pejabat;
+            document.getElementById('btn-wa-confirm').href = `https://wa.me/6288976820509?text=Halo%20Admin%20Inspektorat,%20saya%20sudah%20mengisi%20buku%20tamu%20atas%20nama%20${encodeURIComponent(nama)}%20dari%20${encodeURIComponent(instansi)}.`;
+
+            const successModal = new bootstrap.Modal(document.getElementById('modalSuksesTamu'));
+            successModal.show();
+
+            // Reset formulir
+            document.getElementById('formBukuTamu').reset();
+            document.getElementById('foto-base64').value = '';
+            document.getElementById('webcam-preview').classList.add('d-none');
+            document.getElementById('camera-placeholder').classList.remove('d-none');
+            document.getElementById('camera-status').innerText = 'Kamera Belum Aktif';
+        }
+
+        // Synthetic Beep Sound for Notification
+        function playBeepSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } catch(e) {}
+        }
+
+        function showToast(msg) {
+            document.getElementById('toast-message').innerText = msg;
+            const toastEl = document.getElementById('adminLiveToast');
+            const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+            toast.show();
+        }
+
+        function updateNotifBadge() {
+            const guests = getGuests();
+            const pending = guests.filter(g => g.status === 'PENDING').length;
+            const badge = document.getElementById('notif-badge');
+            if (badge) badge.innerText = pending;
+        }
+
+        // 6. ADMIN DASHBOARD & TABLE RENDER
+        function renderTable() {
+            const tbody = document.getElementById('guest-table-body');
+            const search = (document.getElementById('admin-search-input')?.value || '').toLowerCase();
+            const filterStatus = document.getElementById('admin-filter-status')?.value || 'ALL';
+
+            let guests = getGuests();
+
+            // Filter search & status
+            guests = guests.filter(g => {
+                const matchesSearch = g.nama.toLowerCase().includes(search) || g.instansi.toLowerCase().includes(search) || g.tujuan.toLowerCase().includes(search);
+                const matchesStatus = (filterStatus === 'ALL') ? true : (g.status === filterStatus);
+                return matchesSearch && matchesStatus;
+            });
+
+            if (guests.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fa-regular fa-folder-open fa-2x mb-2 d-block"></i>Tidak ada data tamu yang cocok.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = guests.map(g => `
+                <tr>
+                    <td class="small text-nowrap">
+                        <span class="fw-bold">${g.timestamp}</span><br>
+                        <code class="text-secondary">${g.id}</code>
+                    </td>
+                    <td>
+                        <img src="${g.foto}" alt="${g.nama}" class="rounded-circle border" style="width: 44px; height: 44px; object-fit: cover; cursor: pointer;" onclick="previewFoto('${g.nama}', '${g.instansi}', '${g.foto}')" title="Klik perbesar foto">
+                    </td>
+                    <td>
+                        <div class="fw-bold text-navy">${g.nama}</div>
+                        <div class="small text-muted">${g.instansi}</div>
+                    </td>
+                    <td class="small">
+                        <div><i class="fa-brands fa-whatsapp text-success me-1"></i> <a href="https://wa.me/${g.wa.replace(/[^0-9]/g,'')}" target="_blank" class="text-decoration-none">${g.wa}</a></div>
+                        <div class="text-muted"><i class="fa-regular fa-envelope me-1"></i> ${g.email}</div>
+                    </td>
+                    <td>
+                        <div class="small fw-semibold text-primary"><i class="fa-solid fa-user-tag me-1"></i>${g.pejabat}</div>
+                        <div class="small text-secondary" style="max-width: 250px;">${g.tujuan}</div>
+                    </td>
+                    <td>
+                        ${g.status === 'VERIFIED' 
+                            ? `<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Terverifikasi</span>` 
+                            : `<span class="badge bg-warning text-dark"><i class="fa-regular fa-clock me-1"></i>Menunggu</span>`}
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm">
+                            ${g.status !== 'VERIFIED' ? `
+                                <button class="btn btn-outline-success" onclick="toggleStatus('${g.id}', 'VERIFIED')" title="Setujui Kunjungan">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                            ` : `
+                                <button class="btn btn-outline-secondary" onclick="toggleStatus('${g.id}', 'PENDING')" title="Ubah ke Menunggu">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                            `}
+                            <button class="btn btn-outline-danger" onclick="deleteGuest('${g.id}')" title="Hapus Data">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleStatus(id, newStatus) {
+            const guests = getGuests();
+            const idx = guests.findIndex(g => g.id === id);
+            if (idx !== -1) {
+                guests[idx].status = newStatus;
+                saveGuests(guests);
+                renderTable();
+                updateAdminStats();
+                updateNotifBadge();
+                showToast(`Status Tamu ${guests[idx].nama} diubah menjadi ${newStatus}!`);
+            }
+        }
+
+        function deleteGuest(id) {
+            if (confirm(`Yakin ingin menghapus data tamu ini?`)) {
+                let guests = getGuests();
+                guests = guests.filter(g => g.id !== id);
+                saveGuests(guests);
+                renderTable();
+                updateAdminStats();
+                updateNotifBadge();
+                initWeeklyChart();
+            }
+        }
+
+        function previewFoto(nama, instansi, imgSrc) {
+            document.getElementById('preview-nama-tamu').innerText = nama;
+            document.getElementById('preview-instansi-tamu').innerText = instansi;
+            document.getElementById('modal-img-src').src = imgSrc;
+            const modal = new bootstrap.Modal(document.getElementById('modalFotoPreview'));
+            modal.show();
+        }
+
+        function updateAdminStats() {
+            const guests = getGuests();
+            document.getElementById('kpi-total').innerText = guests.length;
+            document.getElementById('kpi-pending').innerText = guests.filter(g => g.status === 'PENDING').length;
+            document.getElementById('kpi-verified').innerText = guests.filter(g => g.status === 'VERIFIED').length;
+            
+            // Tamu hari ini
+            const todayStr = new Date().toLocaleDateString('id-ID');
+            const todayCount = guests.filter(g => (g.timestamp || '').includes(todayStr)).length;
+            document.getElementById('kpi-today').innerText = todayCount || guests.length;
+        }
+
+        // 7. EXPORT TO EXCEL (XLSX)
+        function exportToExcel() {
+            const guests = getGuests();
+            if (guests.length === 0) {
+                alert("Belum ada data kunjungan untuk diekspor!");
+                return;
+            }
+
+            // Transform data for clean report format
+            const exportData = guests.map((g, index) => ({
+                "No": index + 1,
+                "ID Tamu": g.id,
+                "Waktu Registrasi": g.timestamp,
+                "Nama Lengkap Tamu": g.nama,
+                "Instansi / Asal": g.instansi,
+                "No. WhatsApp": g.wa,
+                "Email": g.email,
+                "Pejabat / Bagian Ditemui": g.pejabat,
+                "Tujuan / Maksud Kunjungan": g.tujuan,
+                "Status Verifikasi": g.status === 'VERIFIED' ? 'Terverifikasi' : 'Menunggu Konfirmasi'
+            }));
+
+            // SheetJS workbook generation
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Kunjungan Tamu");
+
+            // Format column widths
+            const colWidths = [
+                { wch: 5 }, { wch: 12 }, { wch: 20 }, { wch: 25 },
+                { wch: 25 }, { wch: 16 }, { wch: 25 }, { wch: 30 },
+                { wch: 35 }, { wch: 18 }
+            ];
+            worksheet['!cols'] = colWidths;
+
+            // Generate filename with date
+            const dateStr = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(workbook, `Rekapitulasi_Buku_Tamu_Inspektorat_${dateStr}.xlsx`);
+            showToast("Berkas Rekapitulasi Excel Berhasil Diunduh!");
+        }
+
+        // 8. CHART.JS WEEKLY STATS RECAP
+        let chartInstance = null;
+        function initWeeklyChart() {
+            const ctx = document.getElementById('weeklyChart');
+            if (!ctx) return;
+
+            const guests = getGuests();
+            // Count purposes / pejabat
+            const countMap = {};
+            guests.forEach(g => {
+                const key = g.pejabat ? g.pejabat.replace('Inspektur Pembantu', 'Irban') : 'Lainnya';
+                countMap[key] = (countMap[key] || 0) + 1;
+            });
+
+            const labels = Object.keys(countMap);
+            const dataValues = Object.values(countMap);
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length ? labels : ['Belum Ada Data'],
+                    datasets: [{
+                        label: 'Jumlah Tamu Kunjungan',
+                        data: dataValues.length ? dataValues : [0],
+                        backgroundColor: '#1b6ca8',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function resetToSampleData() {
+            if (confirm("Reset ulang data tamu ke sampel awal demo?")) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(sampleGuests));
+                renderTable();
+                updateAdminStats();
+                updateNotifBadge();
+                initWeeklyChart();
+                showToast("Sampel data demo berhasil dimuat ulang.");
+            }
+        }
+
+        // Inisialisasi awal saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            getGuests();
+            checkAuthUI();
+        });
+    </script>
+
+  <!-- PWA & Offline Support Injected by JARVIS -->
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('✅ Service Worker (PWA) Berhasil Terdaftar!', reg))
+          .catch(err => console.log('❌ Service Worker Gagal:', err));
+      });
+    }
+  </script>
+</body>
+</html>
